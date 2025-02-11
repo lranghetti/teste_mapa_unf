@@ -10,8 +10,6 @@
         <link rel="stylesheet" href="css/L.Control.Layers.Tree.css">
         <link rel="stylesheet" href="css/qgis2web.css">
         <link rel="stylesheet" href="css/fontawesome-all.min.css">
-        <link rel="stylesheet" href="css/MarkerCluster.css">
-        <link rel="stylesheet" href="css/MarkerCluster.Default.css">
         <link rel="stylesheet" href="css/leaflet-control-geocoder.Geocoder.css">
         <style>
         html, body, #map {
@@ -37,7 +35,6 @@
         <script src="js/labelgun.min.js"></script>
         <script src="js/labels.js"></script>
         <script src="js/leaflet-control-geocoder.Geocoder.js"></script>
-        <script src="js/leaflet.markercluster.js"></script>
         <script src="data/Cobertura_1.js"></script>
         <script src="data/Sites_2.js"></script>
         <script>
@@ -97,7 +94,7 @@
         function pop_Cobertura_1(feature, layer) {
             var popupContent = '<table>\
                     <tr>\
-                        <td colspan="2"><strong>layer</strong><br />' + (feature.properties['layer'] !== null ? autolinker.link(String(feature.properties['layer']).replace(/'/g, '\'').replace(/"/g, '&quot;').toLocaleString()) : '') + '</td>\
+                        <td colspan="2"><strong>Tecnologia</strong><br />' + (feature.properties['layer'] !== null ? autolinker.link(String(feature.properties['layer']).replace(/'/g, '\'').replace(/"/g, '&quot;').toLocaleString()) : '') + '</td>\
                     </tr>\
                 </table>';
             var content = removeEmptyRowsFromPopupContent(popupContent, feature);
@@ -201,12 +198,8 @@
                 return L.circleMarker(latlng, style_Sites_2_0(feature));
             },
         });
-        var cluster_Sites_2 = new L.MarkerClusterGroup({showCoverageOnHover: false,
-            spiderfyDistanceMultiplier: 2});
-        cluster_Sites_2.addLayer(layer_Sites_2);
-
         bounds_group.addLayer(layer_Sites_2);
-        cluster_Sites_2.addTo(map);
+        map.addLayer(layer_Sites_2);
         var osmGeocoder = new L.Control.Geocoder({
             collapsed: true,
             position: 'topleft',
@@ -218,7 +211,7 @@
         document.getElementsByClassName('leaflet-control-geocoder-icon')[0]
         .title += 'Search for a place';
         var overlaysTree = [
-            {label: '<img src="legend/Sites_2.png" /> Sites', layer: cluster_Sites_2},
+            {label: '<img src="legend/Sites_2.png" /> Sites', layer: layer_Sites_2},
             {label: 'Cobertura<br /><table><tr><td style="text-align: center;"><img src="legend/Cobertura_1_4G0.png" /></td><td>4G</td></tr><tr><td style="text-align: center;"><img src="legend/Cobertura_1_5G1.png" /></td><td>5G</td></tr></table>', layer: layer_Cobertura_1},
             {label: "Google Road", layer: layer_GoogleRoad_0, radioGroup: 'bm' },]
         var lay = L.control.layers.tree(null, overlaysTree,{
