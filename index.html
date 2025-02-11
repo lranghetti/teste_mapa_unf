@@ -40,7 +40,7 @@
         <script>
         var map = L.map('map', {
             zoomControl:false, maxZoom:28, minZoom:1
-        }).fitBounds([[-27.890147535944887,-49.80687683328173],[-27.853328237998586,-49.74841160507172]]);
+        }).fitBounds([[-26.863271245190347,-49.3250743493796],[-26.799512418436375,-49.22504195532419]]);
         var hash = new L.Hash(map);
         map.attributionControl.setPrefix('<a href="https://github.com/tomchadwin/qgis2web" target="_blank">qgis2web</a> &middot; <a href="https://leafletjs.com" title="A JS library for interactive maps">Leaflet</a> &middot; <a href="https://qgis.org">QGIS</a>');
         var autolinker = new Autolinker({truncate: {length: 30, location: 'smart'}});
@@ -213,7 +213,7 @@
         var overlaysTree = [
             {label: '<img src="legend/Sites_2.png" /> Sites', layer: layer_Sites_2},
             {label: 'Cobertura<br /><table><tr><td style="text-align: center;"><img src="legend/Cobertura_1_4G0.png" /></td><td>4G</td></tr><tr><td style="text-align: center;"><img src="legend/Cobertura_1_5G1.png" /></td><td>5G</td></tr></table>', layer: layer_Cobertura_1},
-            {label: "Google Road", layer: layer_GoogleRoad_0, radioGroup: 'bm' },]
+            {label: "Google Road", layer: layer_GoogleRoad_0},]
         var lay = L.control.layers.tree(null, overlaysTree,{
             //namedToggle: true,
             //selectorBack: false,
@@ -281,7 +281,7 @@
                 feature: layer.feature,
                 variables: {}
             };
-            layer.bindTooltip((layer.feature.properties['Site ID'] !== null?String('<div style="color: #f5ec5a; font-size: 12pt; font-weight: bold; font-family: \'Arial\', sans-serif;">' + layer.feature.properties['Site ID']) + '</div>':''), {permanent: true, offset: [-0, -16], className: 'css_Sites_2'});
+            layer.bindTooltip((layer.feature.properties['Site ID'] !== null?String('<div style="color: #000000; font-size: 12pt; font-weight: bold; font-family: \'Arial\', sans-serif;">' + layer.feature.properties['Site ID']) + '</div>':''), {permanent: true, offset: [-0, -16], className: 'css_Sites_2'});
             labels.push(layer);
             totalMarkers += 1;
               layer.added = true;
