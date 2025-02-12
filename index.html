@@ -11,7 +11,9 @@
         <link rel="stylesheet" href="css/L.Control.Locate.min.css">
         <link rel="stylesheet" href="css/qgis2web.css">
         <link rel="stylesheet" href="css/fontawesome-all.min.css">
+        <link rel="stylesheet" href="css/leaflet-search.css">
         <link rel="stylesheet" href="css/leaflet-control-geocoder.Geocoder.css">
+        <link rel="stylesheet" href="css/leaflet-measure.css">
         <style>
         html, body, #map {
             width: 100%;
@@ -37,13 +39,16 @@
         <script src="js/labelgun.min.js"></script>
         <script src="js/labels.js"></script>
         <script src="js/leaflet-control-geocoder.Geocoder.js"></script>
-        <script src="data/Cobertura_1.js"></script>
-        <script src="data/SitesAtivos_2.js"></script>
+        <script src="js/leaflet-measure.js"></script>
+        <script src="js/leaflet-search.js"></script>
+        <script src="data/LimitesMunicipais_1.js"></script>
+        <script src="data/Cobertura_2.js"></script>
         <script src="data/SitesPlanejados_3.js"></script>
+        <script src="data/SitesAtivos_4.js"></script>
         <script>
         var map = L.map('map', {
             zoomControl:false, maxZoom:28, minZoom:1
-        }).fitBounds([[-26.878659988924046,-49.354474045666315],[-26.77636205213265,-49.19398287567531]]);
+        }).fitBounds([[-26.879467809747094,-49.352273379812615],[-26.777167473462573,-49.19177927544391]]);
         var hash = new L.Hash(map);
         map.attributionControl.setPrefix('<a href="https://github.com/tomchadwin/qgis2web" target="_blank">qgis2web</a> &middot; <a href="https://leafletjs.com" title="A JS library for interactive maps">Leaflet</a> &middot; <a href="https://qgis.org">QGIS</a>');
         var autolinker = new Autolinker({truncate: {length: 30, location: 'smart'}});
@@ -104,23 +109,73 @@
             position: 'topleft'
         }).addTo(map);
         L.control.locate({locateOptions: {maxZoom: 19}}).addTo(map);
+        var measureControl = new L.Control.Measure({
+            position: 'topleft',
+            primaryLengthUnit: 'meters',
+            secondaryLengthUnit: 'kilometers',
+            primaryAreaUnit: 'sqmeters',
+            secondaryAreaUnit: 'hectares'
+        });
+        measureControl.addTo(map);
+        document.getElementsByClassName('leaflet-control-measure-toggle')[0].innerHTML = '';
+        document.getElementsByClassName('leaflet-control-measure-toggle')[0].className += ' fas fa-ruler';
         var bounds_group = new L.featureGroup([]);
         function setBounds() {
         }
-        map.createPane('pane_OSMStandard_0');
-        map.getPane('pane_OSMStandard_0').style.zIndex = 400;
-        var layer_OSMStandard_0 = L.tileLayer('http://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            pane: 'pane_OSMStandard_0',
+        map.createPane('pane_GoogleRoad_0');
+        map.getPane('pane_GoogleRoad_0').style.zIndex = 400;
+        var layer_GoogleRoad_0 = L.tileLayer('https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', {
+            pane: 'pane_GoogleRoad_0',
             opacity: 1.0,
-            attribution: '<a href="https://www.openstreetmap.org/copyright">© OpenStreetMap contributors, CC-BY-SA</a>',
+            attribution: '<a href="https://www.google.at/permissions/geoguidelines/attr-guide.html">Map data ©2015 Google</a>',
             minZoom: 1,
             maxZoom: 28,
             minNativeZoom: 0,
-            maxNativeZoom: 19
+            maxNativeZoom: 20
         });
-        layer_OSMStandard_0;
-        map.addLayer(layer_OSMStandard_0);
-        function pop_Cobertura_1(feature, layer) {
+        layer_GoogleRoad_0;
+        map.addLayer(layer_GoogleRoad_0);
+        function pop_LimitesMunicipais_1(feature, layer) {
+            var popupContent = '<table>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['cidades_Município'] !== null ? autolinker.link(String(feature.properties['cidades_Município']).replace(/'/g, '\'').replace(/"/g, '&quot;').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
+			layer.on('popupopen', function(e) {
+				addClassToPopupIfMedia(content, e.popup);
+			});
+			layer.bindPopup(content, { maxHeight: 400 });
+        }
+
+        function style_LimitesMunicipais_1_0() {
+            return {
+                pane: 'pane_LimitesMunicipais_1',
+                opacity: 1,
+                color: 'rgba(172,86,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 2.0,
+                fillOpacity: 0,
+                interactive: false,
+            }
+        }
+        map.createPane('pane_LimitesMunicipais_1');
+        map.getPane('pane_LimitesMunicipais_1').style.zIndex = 401;
+        map.getPane('pane_LimitesMunicipais_1').style['mix-blend-mode'] = 'normal';
+        var layer_LimitesMunicipais_1 = new L.geoJson(json_LimitesMunicipais_1, {
+            attribution: '',
+            interactive: false,
+            dataVar: 'json_LimitesMunicipais_1',
+            layerName: 'layer_LimitesMunicipais_1',
+            pane: 'pane_LimitesMunicipais_1',
+            onEachFeature: pop_LimitesMunicipais_1,
+            style: style_LimitesMunicipais_1_0,
+        });
+        bounds_group.addLayer(layer_LimitesMunicipais_1);
+        map.addLayer(layer_LimitesMunicipais_1);
+        function pop_Cobertura_2(feature, layer) {
             var popupContent = '<table>\
                     <tr>\
                         <th scope="row">Tecnologia</th>\
@@ -134,11 +189,11 @@
 			layer.bindPopup(content, { maxHeight: 400 });
         }
 
-        function style_Cobertura_1_0(feature) {
+        function style_Cobertura_2_0(feature) {
             switch(String(feature.properties['layer'])) {
                 case '4G':
                     return {
-                pane: 'pane_Cobertura_1',
+                pane: 'pane_Cobertura_2',
                 stroke: false, 
                 fill: true,
                 fillOpacity: 1,
@@ -148,7 +203,7 @@
                     break;
                 case '5G':
                     return {
-                pane: 'pane_Cobertura_1',
+                pane: 'pane_Cobertura_2',
                 stroke: false, 
                 fill: true,
                 fillOpacity: 1,
@@ -158,74 +213,20 @@
                     break;
             }
         }
-        map.createPane('pane_Cobertura_1');
-        map.getPane('pane_Cobertura_1').style.zIndex = 401;
-        map.getPane('pane_Cobertura_1').style['mix-blend-mode'] = 'normal';
-        var layer_Cobertura_1 = new L.geoJson(json_Cobertura_1, {
+        map.createPane('pane_Cobertura_2');
+        map.getPane('pane_Cobertura_2').style.zIndex = 402;
+        map.getPane('pane_Cobertura_2').style['mix-blend-mode'] = 'normal';
+        var layer_Cobertura_2 = new L.geoJson(json_Cobertura_2, {
             attribution: '',
             interactive: true,
-            dataVar: 'json_Cobertura_1',
-            layerName: 'layer_Cobertura_1',
-            pane: 'pane_Cobertura_1',
-            onEachFeature: pop_Cobertura_1,
-            style: style_Cobertura_1_0,
+            dataVar: 'json_Cobertura_2',
+            layerName: 'layer_Cobertura_2',
+            pane: 'pane_Cobertura_2',
+            onEachFeature: pop_Cobertura_2,
+            style: style_Cobertura_2_0,
         });
-        bounds_group.addLayer(layer_Cobertura_1);
-        map.addLayer(layer_Cobertura_1);
-        function pop_SitesAtivos_2(feature, layer) {
-            var popupContent = '<table>\
-                    <tr>\
-                        <th scope="row">Site ID</th>\
-                        <td>' + (feature.properties['Site ID'] !== null ? autolinker.link(String(feature.properties['Site ID']).replace(/'/g, '\'').replace(/"/g, '&quot;').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <th scope="row">Latitude</th>\
-                        <td class="visible-with-data" id="Latitude">' + (feature.properties['Latitude'] !== null ? autolinker.link(String(feature.properties['Latitude']).replace(/'/g, '\'').replace(/"/g, '&quot;').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <th scope="row">Longitude</th>\
-                        <td class="visible-with-data" id="Longitude">' + (feature.properties['Longitude'] !== null ? autolinker.link(String(feature.properties['Longitude']).replace(/'/g, '\'').replace(/"/g, '&quot;').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                </table>';
-            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
-			layer.on('popupopen', function(e) {
-				addClassToPopupIfMedia(content, e.popup);
-			});
-			layer.bindPopup(content, { maxHeight: 400 });
-        }
-
-        function style_SitesAtivos_2_0() {
-            return {
-                pane: 'pane_SitesAtivos_2',
-        rotationAngle: 0.0,
-        rotationOrigin: 'center center',
-        icon: L.icon({
-            iconUrl: 'markers/SitesAtivos_2.svg',
-            iconSize: [22.799999999999997, 22.799999999999997]
-        }),
-                interactive: true,
-            }
-        }
-        map.createPane('pane_SitesAtivos_2');
-        map.getPane('pane_SitesAtivos_2').style.zIndex = 402;
-        map.getPane('pane_SitesAtivos_2').style['mix-blend-mode'] = 'normal';
-        var layer_SitesAtivos_2 = new L.geoJson(json_SitesAtivos_2, {
-            attribution: '',
-            interactive: true,
-            dataVar: 'json_SitesAtivos_2',
-            layerName: 'layer_SitesAtivos_2',
-            pane: 'pane_SitesAtivos_2',
-            onEachFeature: pop_SitesAtivos_2,
-            pointToLayer: function (feature, latlng) {
-                var context = {
-                    feature: feature,
-                    variables: {}
-                };
-                return L.marker(latlng, style_SitesAtivos_2_0(feature));
-            },
-        });
-        bounds_group.addLayer(layer_SitesAtivos_2);
-        map.addLayer(layer_SitesAtivos_2);
+        bounds_group.addLayer(layer_Cobertura_2);
+        map.addLayer(layer_Cobertura_2);
         function pop_SitesPlanejados_3(feature, layer) {
             var popupContent = '<table>\
                     <tr>\
@@ -280,6 +281,56 @@
         });
         bounds_group.addLayer(layer_SitesPlanejados_3);
         map.addLayer(layer_SitesPlanejados_3);
+        function pop_SitesAtivos_4(feature, layer) {
+            var popupContent = '<table>\
+                    <tr>\
+                        <th scope="row">Site ID</th>\
+                        <td>' + (feature.properties['Site ID'] !== null ? autolinker.link(String(feature.properties['Site ID']).replace(/'/g, '\'').replace(/"/g, '&quot;').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Latitude</th>\
+                        <td class="visible-with-data" id="Latitude">' + (feature.properties['Latitude'] !== null ? autolinker.link(String(feature.properties['Latitude']).replace(/'/g, '\'').replace(/"/g, '&quot;').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
+			layer.on('popupopen', function(e) {
+				addClassToPopupIfMedia(content, e.popup);
+			});
+			layer.bindPopup(content, { maxHeight: 400 });
+        }
+
+        function style_SitesAtivos_4_0() {
+            return {
+                pane: 'pane_SitesAtivos_4',
+        rotationAngle: 0.0,
+        rotationOrigin: 'center center',
+        icon: L.icon({
+            iconUrl: 'markers/SitesAtivos_4.svg',
+            iconSize: [22.799999999999997, 22.799999999999997]
+        }),
+                interactive: true,
+            }
+        }
+        map.createPane('pane_SitesAtivos_4');
+        map.getPane('pane_SitesAtivos_4').style.zIndex = 404;
+        map.getPane('pane_SitesAtivos_4').style['mix-blend-mode'] = 'normal';
+        var layer_SitesAtivos_4 = new L.geoJson(json_SitesAtivos_4, {
+            attribution: '',
+            interactive: true,
+            dataVar: 'json_SitesAtivos_4',
+            layerName: 'layer_SitesAtivos_4',
+            pane: 'pane_SitesAtivos_4',
+            onEachFeature: pop_SitesAtivos_4,
+            pointToLayer: function (feature, latlng) {
+                var context = {
+                    feature: feature,
+                    variables: {}
+                };
+                return L.marker(latlng, style_SitesAtivos_4_0(feature));
+            },
+        });
+        bounds_group.addLayer(layer_SitesAtivos_4);
+        map.addLayer(layer_SitesAtivos_4);
         var osmGeocoder = new L.Control.Geocoder({
             collapsed: true,
             position: 'topleft',
@@ -291,10 +342,11 @@
         document.getElementsByClassName('leaflet-control-geocoder-icon')[0]
         .title += 'Search for a place';
         var overlaysTree = [
+            {label: '<img src="legend/SitesAtivos_4.png" /> Sites Ativos', layer: layer_SitesAtivos_4},
             {label: '<img src="legend/SitesPlanejados_3.png" /> Sites Planejados', layer: layer_SitesPlanejados_3},
-            {label: '<img src="legend/SitesAtivos_2.png" /> Sites Ativos', layer: layer_SitesAtivos_2},
-            {label: 'Cobertura<br /><table><tr><td style="text-align: center;"><img src="legend/Cobertura_1_4G0.png" /></td><td>4G</td></tr><tr><td style="text-align: center;"><img src="legend/Cobertura_1_5G1.png" /></td><td>5G</td></tr></table>', layer: layer_Cobertura_1},
-            {label: "OSM Standard", layer: layer_OSMStandard_0, radioGroup: 'bm' },]
+            {label: 'Cobertura<br /><table><tr><td style="text-align: center;"><img src="legend/Cobertura_2_4G0.png" /></td><td>4G</td></tr><tr><td style="text-align: center;"><img src="legend/Cobertura_2_5G1.png" /></td><td>5G</td></tr></table>', layer: layer_Cobertura_2},
+            {label: '<img src="legend/LimitesMunicipais_1.png" /> Limites Municipais', layer: layer_LimitesMunicipais_1},
+            {label: "Google Road", layer: layer_GoogleRoad_0},]
         var lay = L.control.layers.tree(null, overlaysTree,{
             //namedToggle: true,
             //selectorBack: false,
@@ -357,19 +409,6 @@
         });       
         setBounds();
         var i = 0;
-        layer_SitesAtivos_2.eachLayer(function(layer) {
-            var context = {
-                feature: layer.feature,
-                variables: {}
-            };
-            layer.bindTooltip((layer.feature.properties['Site ID'] !== null?String('<div style="color: #000000; font-size: 10pt; font-weight: bold; font-family: \'Arial\', sans-serif;">' + layer.feature.properties['Site ID']) + '</div>':''), {permanent: true, offset: [-0, -16], className: 'css_SitesAtivos_2'});
-            labels.push(layer);
-            totalMarkers += 1;
-              layer.added = true;
-              addLabel(layer, i);
-              i++;
-        });
-        var i = 0;
         layer_SitesPlanejados_3.eachLayer(function(layer) {
             var context = {
                 feature: layer.feature,
@@ -382,15 +421,35 @@
               addLabel(layer, i);
               i++;
         });
-        resetLabels([layer_SitesAtivos_2,layer_SitesPlanejados_3]);
+        var i = 0;
+        layer_SitesAtivos_4.eachLayer(function(layer) {
+            var context = {
+                feature: layer.feature,
+                variables: {}
+            };
+            layer.bindTooltip((layer.feature.properties['Site ID'] !== null?String('<div style="color: #000000; font-size: 10pt; font-weight: bold; font-family: \'Arial\', sans-serif;">' + layer.feature.properties['Site ID']) + '</div>':''), {permanent: true, offset: [-0, -16], className: 'css_SitesAtivos_4'});
+            labels.push(layer);
+            totalMarkers += 1;
+              layer.added = true;
+              addLabel(layer, i);
+              i++;
+        });
+        map.addControl(new L.Control.Search({
+            layer: layer_LimitesMunicipais_1,
+            initial: false,
+            hideMarkerOnCollapse: true,
+            propertyName: 'cidades_Município'}));
+        document.getElementsByClassName('search-button')[0].className +=
+         ' fa fa-binoculars';
+        resetLabels([layer_SitesPlanejados_3,layer_SitesAtivos_4]);
         map.on("zoomend", function(){
-            resetLabels([layer_SitesAtivos_2,layer_SitesPlanejados_3]);
+            resetLabels([layer_SitesPlanejados_3,layer_SitesAtivos_4]);
         });
         map.on("layeradd", function(){
-            resetLabels([layer_SitesAtivos_2,layer_SitesPlanejados_3]);
+            resetLabels([layer_SitesPlanejados_3,layer_SitesAtivos_4]);
         });
         map.on("layerremove", function(){
-            resetLabels([layer_SitesAtivos_2,layer_SitesPlanejados_3]);
+            resetLabels([layer_SitesPlanejados_3,layer_SitesAtivos_4]);
         });
         </script>
     </body>
