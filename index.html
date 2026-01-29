@@ -1,0 +1,474 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="initial-scale=1,user-scalable=no,maximum-scale=1,width=device-width">
+        <meta name="mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <link rel="stylesheet" href="css/leaflet.css">
+        <link rel="stylesheet" href="css/L.Control.Layers.Tree.css">
+        <link rel="stylesheet" href="css/qgis2web.css">
+        <link rel="stylesheet" href="css/fontawesome-all.min.css">
+        <link rel="stylesheet" href="css/leaflet-search.css">
+        <link rel="stylesheet" href="css/leaflet.photon.css">
+        <style>
+        html, body, #map {
+            width: 100%;
+            height: 100%;
+            padding: 0;
+            margin: 0;
+        }
+        </style>
+        <title>Mapa INTERNO de cobertura móvel</title>
+    </head>
+    <body>
+        <div id="map">
+        </div>
+        <script src="js/qgis2web_expressions.js"></script>
+        <script src="js/leaflet.js"></script>
+        <script src="js/L.Control.Layers.Tree.min.js"></script>
+        <script src="js/leaflet.rotatedMarker.js"></script>
+        <script src="js/leaflet.pattern.js"></script>
+        <script src="js/leaflet-hash.js"></script>
+        <script src="js/Autolinker.min.js"></script>
+        <script src="js/rbush.min.js"></script>
+        <script src="js/labelgun.min.js"></script>
+        <script src="js/labels.js"></script>
+        <script src="js/leaflet.photon.js"></script>
+        <script src="js/leaflet-search.js"></script>
+        <script src="data/Cobertura4G_1.js"></script>
+        <script src="data/Cobertura5G_2.js"></script>
+        <script src="data/LimitesMunicipais_3.js"></script>
+        <script src="data/SitesPlanejados_4.js"></script>
+        <script src="data/SitesAtivos_5.js"></script>
+        <script>
+        var map = L.map('map', {
+            zoomControl:false, maxZoom:28, minZoom:1
+        }).fitBounds([[-26.911791180304352,-49.36634270311902],[-26.768065345954536,-49.1605556633853]]);
+        var hash = new L.Hash(map);
+        map.attributionControl.setPrefix('<a href="https://github.com/tomchadwin/qgis2web" target="_blank">qgis2web</a> &middot; <a href="https://leafletjs.com" title="A JS library for interactive maps">Leaflet</a> &middot; <a href="https://qgis.org">QGIS</a>');
+        var autolinker = new Autolinker({truncate: {length: 30, location: 'smart'}});
+        // remove popup's row if "visible-with-data"
+        function removeEmptyRowsFromPopupContent(content, feature) {
+         var tempDiv = document.createElement('div');
+         tempDiv.innerHTML = content;
+         var rows = tempDiv.querySelectorAll('tr');
+         for (var i = 0; i < rows.length; i++) {
+             var td = rows[i].querySelector('td.visible-with-data');
+             var key = td ? td.id : '';
+             if (td && td.classList.contains('visible-with-data') && feature.properties[key] == null) {
+                 rows[i].parentNode.removeChild(rows[i]);
+             }
+         }
+         return tempDiv.innerHTML;
+        }
+        // modify popup if contains media
+        function addClassToPopupIfMedia(content, popup) {
+            var tempDiv = document.createElement('div');
+            tempDiv.innerHTML = content;
+            var imgTd = tempDiv.querySelector('td img');
+            if (imgTd) {
+                var src = imgTd.getAttribute('src');
+                if (/\.(jpg|jpeg|png|gif|bmp|webp|avif)$/i.test(src)) {
+                    popup._contentNode.classList.add('media');
+                    setTimeout(function() {
+                        popup.update();
+                    }, 10);
+                } else if (/\.(mp3|wav|ogg|aac)$/i.test(src)) {
+                    var audio = document.createElement('audio');
+                    audio.controls = true;
+                    audio.src = src;
+                    imgTd.parentNode.replaceChild(audio, imgTd);
+                    popup._contentNode.classList.add('media');
+                    setTimeout(function() {
+                        popup.setContent(tempDiv.innerHTML);
+                        popup.update();
+                    }, 10);
+                } else if (/\.(mp4|webm|ogg|mov)$/i.test(src)) {
+                    var video = document.createElement('video');
+                    video.controls = true;
+                    video.src = src;
+                    video.style.width = "400px";
+                    video.style.height = "300px";
+                    video.style.maxHeight = "60vh";
+                    video.style.maxWidth = "60vw";
+                    imgTd.parentNode.replaceChild(video, imgTd);
+                    popup._contentNode.classList.add('media');
+                    // Aggiorna il popup quando il video carica i metadati
+                    video.addEventListener('loadedmetadata', function() {
+                        popup.update();
+                    });
+                    setTimeout(function() {
+                        popup.setContent(tempDiv.innerHTML);
+                        popup.update();
+                    }, 10);
+                } else {
+                    popup._contentNode.classList.remove('media');
+                }
+            } else {
+                popup._contentNode.classList.remove('media');
+            }
+        }
+        var title = new L.Control({'position':'topleft'});
+        title.onAdd = function (map) {
+            this._div = L.DomUtil.create('div', 'info');
+            this.update();
+            return this._div;
+        };
+        title.update = function () {
+            this._div.innerHTML = '<h2>Mapa INTERNO de cobertura móvel</h2>';
+        };
+        title.addTo(map);
+        var abstract = new L.Control({'position':'topleft'});
+        abstract.onAdd = function (map) {
+            this._div = L.DomUtil.create('div',
+            'leaflet-control abstract');
+            this._div.id = 'abstract'
+
+                abstract.show();
+                return this._div;
+            };
+            abstract.show = function () {
+                this._div.classList.remove("abstract");
+                this._div.classList.add("abstractUncollapsed");
+                this._div.innerHTML = 'Mapa de cobertura parcial da rede Unifique para uso INTERNO apenas. Ferramenta auxiliar de decisão para o lançamento comercial das cidades.<br /><br />Sites ativos: <b>492 (+18)</b><br />Última atualização: <b>02/01/2026</b><br />';
+        };
+        abstract.addTo(map);
+        var zoomControl = L.control.zoom({
+            position: 'topleft'
+        }).addTo(map);
+        var bounds_group = new L.featureGroup([]);
+        function setBounds() {
+        }
+        map.createPane('pane_GoogleHybrid_0');
+        map.getPane('pane_GoogleHybrid_0').style.zIndex = 400;
+        var layer_GoogleHybrid_0 = L.tileLayer('https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', {
+            pane: 'pane_GoogleHybrid_0',
+            opacity: 1.0,
+            attribution: '<a href="https://www.google.at/permissions/geoguidelines/attr-guide.html">Map data ©2015 Google</a>',
+            minZoom: 1,
+            maxZoom: 28,
+            minNativeZoom: 0,
+            maxNativeZoom: 20
+        });
+        layer_GoogleHybrid_0;
+        map.addLayer(layer_GoogleHybrid_0);
+        function pop_Cobertura4G_1(feature, layer) {
+            var popupContent = '<table>\
+                </table>';
+            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
+			layer.on('popupopen', function(e) {
+				addClassToPopupIfMedia(content, e.popup);
+			});
+			layer.bindPopup(content, { maxHeight: 400 });
+        }
+
+        function style_Cobertura4G_1_0() {
+            return {
+                pane: 'pane_Cobertura4G_1',
+                stroke: false, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(0,162,255,0.6)',
+                interactive: false,
+            }
+        }
+        map.createPane('pane_Cobertura4G_1');
+        map.getPane('pane_Cobertura4G_1').style.zIndex = 401;
+        map.getPane('pane_Cobertura4G_1').style['mix-blend-mode'] = 'normal';
+        var layer_Cobertura4G_1 = new L.geoJson(json_Cobertura4G_1, {
+            attribution: '',
+            interactive: false,
+            dataVar: 'json_Cobertura4G_1',
+            layerName: 'layer_Cobertura4G_1',
+            pane: 'pane_Cobertura4G_1',
+            onEachFeature: pop_Cobertura4G_1,
+            style: style_Cobertura4G_1_0,
+        });
+        bounds_group.addLayer(layer_Cobertura4G_1);
+        map.addLayer(layer_Cobertura4G_1);
+        function pop_Cobertura5G_2(feature, layer) {
+            var popupContent = '<table>\
+                </table>';
+            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
+			layer.on('popupopen', function(e) {
+				addClassToPopupIfMedia(content, e.popup);
+			});
+			layer.bindPopup(content, { maxHeight: 400 });
+        }
+
+        function style_Cobertura5G_2_0() {
+            return {
+                pane: 'pane_Cobertura5G_2',
+                stroke: false, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(33,36,146,0.6)',
+                interactive: false,
+            }
+        }
+        map.createPane('pane_Cobertura5G_2');
+        map.getPane('pane_Cobertura5G_2').style.zIndex = 402;
+        map.getPane('pane_Cobertura5G_2').style['mix-blend-mode'] = 'normal';
+        var layer_Cobertura5G_2 = new L.geoJson(json_Cobertura5G_2, {
+            attribution: '',
+            interactive: false,
+            dataVar: 'json_Cobertura5G_2',
+            layerName: 'layer_Cobertura5G_2',
+            pane: 'pane_Cobertura5G_2',
+            onEachFeature: pop_Cobertura5G_2,
+            style: style_Cobertura5G_2_0,
+        });
+        bounds_group.addLayer(layer_Cobertura5G_2);
+        map.addLayer(layer_Cobertura5G_2);
+        function pop_LimitesMunicipais_3(feature, layer) {
+            var popupContent = '<table>\
+                </table>';
+            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
+			layer.on('popupopen', function(e) {
+				addClassToPopupIfMedia(content, e.popup);
+			});
+			layer.bindPopup(content, { maxHeight: 400 });
+        }
+
+        function style_LimitesMunicipais_3_0() {
+            return {
+                pane: 'pane_LimitesMunicipais_3',
+                opacity: 1,
+                color: 'rgba(255,255,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 2.0,
+                fillOpacity: 0,
+                interactive: false,
+            }
+        }
+        map.createPane('pane_LimitesMunicipais_3');
+        map.getPane('pane_LimitesMunicipais_3').style.zIndex = 403;
+        map.getPane('pane_LimitesMunicipais_3').style['mix-blend-mode'] = 'normal';
+        var layer_LimitesMunicipais_3 = new L.geoJson(json_LimitesMunicipais_3, {
+            attribution: '',
+            interactive: false,
+            dataVar: 'json_LimitesMunicipais_3',
+            layerName: 'layer_LimitesMunicipais_3',
+            pane: 'pane_LimitesMunicipais_3',
+            onEachFeature: pop_LimitesMunicipais_3,
+            style: style_LimitesMunicipais_3_0,
+        });
+        bounds_group.addLayer(layer_LimitesMunicipais_3);
+        map.addLayer(layer_LimitesMunicipais_3);
+        function pop_SitesPlanejados_4(feature, layer) {
+            var popupContent = '<table>\
+                    <tr>\
+                        <th scope="row">Site ID</th>\
+                        <td>' + (feature.properties['Site ID'] !== null ? autolinker.link(String(feature.properties['Site ID']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
+			layer.on('popupopen', function(e) {
+				addClassToPopupIfMedia(content, e.popup);
+			});
+			layer.bindPopup(content, { maxHeight: 400 });
+        }
+
+        function style_SitesPlanejados_4_0() {
+            return {
+                pane: 'pane_SitesPlanejados_4',
+        rotationAngle: 0.0,
+        rotationOrigin: 'center center',
+        icon: L.icon({
+            iconUrl: 'markers/SitesPlanejados_4.svg',
+            iconSize: [22.799999999999997, 22.799999999999997]
+        }),
+                interactive: true,
+            }
+        }
+        map.createPane('pane_SitesPlanejados_4');
+        map.getPane('pane_SitesPlanejados_4').style.zIndex = 404;
+        map.getPane('pane_SitesPlanejados_4').style['mix-blend-mode'] = 'normal';
+        var layer_SitesPlanejados_4 = new L.geoJson(json_SitesPlanejados_4, {
+            attribution: '',
+            interactive: true,
+            dataVar: 'json_SitesPlanejados_4',
+            layerName: 'layer_SitesPlanejados_4',
+            pane: 'pane_SitesPlanejados_4',
+            onEachFeature: pop_SitesPlanejados_4,
+            pointToLayer: function (feature, latlng) {
+                var context = {
+                    feature: feature,
+                    variables: {}
+                };
+                return L.marker(latlng, style_SitesPlanejados_4_0(feature));
+            },
+        });
+        bounds_group.addLayer(layer_SitesPlanejados_4);
+        map.addLayer(layer_SitesPlanejados_4);
+        function pop_SitesAtivos_5(feature, layer) {
+            var popupContent = '<table>\
+                    <tr>\
+                        <th scope="row">Site ID</th>\
+                        <td>' + (feature.properties['Site ID'] !== null ? autolinker.link(String(feature.properties['Site ID']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Ativo logicamente</th>\
+                        <td>' + (feature.properties['Ativo logicamente'] !== null ? autolinker.link(String(feature.properties['Ativo logicamente']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
+			layer.on('popupopen', function(e) {
+				addClassToPopupIfMedia(content, e.popup);
+			});
+			layer.bindPopup(content, { maxHeight: 400 });
+        }
+
+        function style_SitesAtivos_5_0() {
+            return {
+                pane: 'pane_SitesAtivos_5',
+        rotationAngle: 0.0,
+        rotationOrigin: 'center center',
+        icon: L.icon({
+            iconUrl: 'markers/SitesAtivos_5.svg',
+            iconSize: [22.799999999999997, 22.799999999999997]
+        }),
+                interactive: true,
+            }
+        }
+        map.createPane('pane_SitesAtivos_5');
+        map.getPane('pane_SitesAtivos_5').style.zIndex = 405;
+        map.getPane('pane_SitesAtivos_5').style['mix-blend-mode'] = 'normal';
+        var layer_SitesAtivos_5 = new L.geoJson(json_SitesAtivos_5, {
+            attribution: '',
+            interactive: true,
+            dataVar: 'json_SitesAtivos_5',
+            layerName: 'layer_SitesAtivos_5',
+            pane: 'pane_SitesAtivos_5',
+            onEachFeature: pop_SitesAtivos_5,
+            pointToLayer: function (feature, latlng) {
+                var context = {
+                    feature: feature,
+                    variables: {}
+                };
+                return L.marker(latlng, style_SitesAtivos_5_0(feature));
+            },
+        });
+        bounds_group.addLayer(layer_SitesAtivos_5);
+        map.addLayer(layer_SitesAtivos_5);
+        var overlaysTree = [
+            {label: '<img src="legend/SitesAtivos_5.png" /> Sites Ativos', layer: layer_SitesAtivos_5},
+            {label: '<img src="legend/SitesPlanejados_4.png" /> Sites Planejados', layer: layer_SitesPlanejados_4},
+            {label: '<img src="legend/LimitesMunicipais_3.png" /> Limites Municipais', layer: layer_LimitesMunicipais_3},
+            {label: '<img src="legend/Cobertura5G_2.png" /> Cobertura 5G', layer: layer_Cobertura5G_2},
+            {label: '<img src="legend/Cobertura4G_1.png" /> Cobertura 4G', layer: layer_Cobertura4G_1},
+            {label: "Google Hybrid", layer: layer_GoogleHybrid_0, radioGroup: 'bm' },]
+        var lay = L.control.layers.tree(null, overlaysTree,{
+            //namedToggle: true,
+            //selectorBack: false,
+            //closedSymbol: '&#8862; &#x1f5c0;',
+            //openedSymbol: '&#8863; &#x1f5c1;',
+            //collapseAll: 'Collapse all',
+            //expandAll: 'Expand all',
+            collapsed: false, 
+        });
+        lay.addTo(map);
+		document.addEventListener("DOMContentLoaded", function() {
+            // set new Layers List height which considers toggle icon
+            function newLayersListHeight() {
+                var layerScrollbarElement = document.querySelector('.leaflet-control-layers-scrollbar');
+                if (layerScrollbarElement) {
+                    var layersListElement = document.querySelector('.leaflet-control-layers-list');
+                    var originalHeight = layersListElement.style.height 
+                        || window.getComputedStyle(layersListElement).height;
+                    var newHeight = parseFloat(originalHeight) - 50;
+                    layersListElement.style.height = newHeight + 'px';
+                }
+            }
+            var isLayersListExpanded = true;
+            var controlLayersElement = document.querySelector('.leaflet-control-layers');
+            var toggleLayerControl = document.querySelector('.leaflet-control-layers-toggle');
+            // toggle Collapsed/Expanded and apply new Layers List height
+            toggleLayerControl.addEventListener('click', function() {
+                if (isLayersListExpanded) {
+                    controlLayersElement.classList.remove('leaflet-control-layers-expanded');
+                } else {
+                    controlLayersElement.classList.add('leaflet-control-layers-expanded');
+                }
+                isLayersListExpanded = !isLayersListExpanded;
+                newLayersListHeight()
+            });	
+			// apply new Layers List height if toggle layerstree
+			if (controlLayersElement) {
+				controlLayersElement.addEventListener('click', function(event) {
+					var toggleLayerHeaderPointer = event.target.closest('.leaflet-layerstree-header-pointer span');
+					if (toggleLayerHeaderPointer) {
+						newLayersListHeight();
+					}
+				});
+			}
+            // Collapsed/Expanded at Start to apply new height
+            setTimeout(function() {
+                toggleLayerControl.click();
+            }, 10);
+            setTimeout(function() {
+                toggleLayerControl.click();
+            }, 10);
+            // Collapsed touch/small screen
+            var isSmallScreen = window.innerWidth < 650;
+            if (isSmallScreen) {
+                setTimeout(function() {
+                    controlLayersElement.classList.remove('leaflet-control-layers-expanded');
+                    isLayersListExpanded = !isLayersListExpanded;
+                }, 500);
+            }  
+        });       
+        setBounds();
+        var i = 0;
+        layer_SitesPlanejados_4.eachLayer(function(layer) {
+            var context = {
+                feature: layer.feature,
+                variables: {}
+            };
+            layer.bindTooltip((layer.feature.properties['Site ID'] !== null?String('<div style="color: #e31a1c; font-size: 10pt; font-weight: bold; font-family: \'Arial\', sans-serif;">' + layer.feature.properties['Site ID']) + '</div>':''), {permanent: true, offset: [-0, -16], className: 'css_SitesPlanejados_4'});
+            labels.push(layer);
+            totalMarkers += 1;
+              layer.added = true;
+              addLabel(layer, i);
+              i++;
+        });
+        var i = 0;
+        layer_SitesAtivos_5.eachLayer(function(layer) {
+            var context = {
+                feature: layer.feature,
+                variables: {}
+            };
+            layer.bindTooltip((layer.feature.properties['Site ID'] !== null?String('<div style="color: #000000; font-size: 10pt; font-weight: bold; font-family: \'Arial\', sans-serif;">' + layer.feature.properties['Site ID']) + '</div>':''), {permanent: true, offset: [-0, -16], className: 'css_SitesAtivos_5'});
+            labels.push(layer);
+            totalMarkers += 1;
+              layer.added = true;
+              addLabel(layer, i);
+              i++;
+        });
+        map.addControl(new L.Control.Search({
+            layer: layer_LimitesMunicipais_3,
+            initial: false,
+            hideMarkerOnCollapse: true,
+            propertyName: 'Cidade'}));
+        if (typeof url === 'undefined') {
+            document.getElementsByClassName('search-button')[0].className += ' fa fa-binoculars';
+        } else {
+            document.getElementsByClassName('search-button')[1].className += ' fa fa-binoculars';
+        }
+        resetLabels([layer_SitesPlanejados_4,layer_SitesAtivos_5]);
+        map.on("zoomend", function(){
+            resetLabels([layer_SitesPlanejados_4,layer_SitesAtivos_5]);
+        });
+        map.on("layeradd", function(){
+            resetLabels([layer_SitesPlanejados_4,layer_SitesAtivos_5]);
+        });
+        map.on("layerremove", function(){
+            resetLabels([layer_SitesPlanejados_4,layer_SitesAtivos_5]);
+        });
+        </script>        
+    </body>
+</html>
