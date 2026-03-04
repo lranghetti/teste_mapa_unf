@@ -10,7 +10,6 @@
         <link rel="stylesheet" href="css/L.Control.Layers.Tree.css">
         <link rel="stylesheet" href="css/qgis2web.css">
         <link rel="stylesheet" href="css/fontawesome-all.min.css">
-        <link rel="stylesheet" href="css/leaflet-search.css">
         <link rel="stylesheet" href="css/leaflet.photon.css">
         <style>
         html, body, #map {
@@ -36,7 +35,6 @@
         <script src="js/labelgun.min.js"></script>
         <script src="js/labels.js"></script>
         <script src="js/leaflet.photon.js"></script>
-        <script src="js/leaflet-search.js"></script>
         <script src="data/Cobertura4G_1.js"></script>
         <script src="data/Cobertura5G_2.js"></script>
         <script src="data/LimitesMunicipais_3.js"></script>
@@ -45,7 +43,7 @@
         <script>
         var map = L.map('map', {
             zoomControl:false, maxZoom:28, minZoom:1
-        }).fitBounds([[-26.912058440190542,-49.38954439697789],[-26.76776262356089,-49.13732856295381]]);
+        }).fitBounds([[-26.882454490940614,-49.37955207038641],[-26.744112070187057,-49.17874972791484]]);
         var hash = new L.Hash(map);
         map.attributionControl.setPrefix('<a href="https://github.com/tomchadwin/qgis2web" target="_blank">qgis2web</a> &middot; <a href="https://leafletjs.com" title="A JS library for interactive maps">Leaflet</a> &middot; <a href="https://qgis.org">QGIS</a>');
         var autolinker = new Autolinker({truncate: {length: 30, location: 'smart'}});
@@ -132,7 +130,7 @@
             abstract.show = function () {
                 this._div.classList.remove("abstract");
                 this._div.classList.add("abstractUncollapsed");
-                this._div.innerHTML = 'Mapa de cobertura parcial da rede Unifique para uso INTERNO apenas. Ferramenta auxiliar de decisão para o lançamento comercial das cidades.<br /><br />Sites ativos: <b>525 (+33)</b><br />Última atualização: <b>05/02/2026</b><br />';
+                this._div.innerHTML = 'Mapa de cobertura parcial da rede Unifique para uso INTERNO apenas. Ferramenta auxiliar de decisão para o lançamento comercial das cidades.<br /><br />Sites ativos: <b>560 (+35)</b><br />Última atualização: <b>04/03/2026</b><br />';
         };
         abstract.addTo(map);
         var zoomControl = L.control.zoom({
@@ -155,6 +153,16 @@
         layer_GoogleHybrid_0;
         map.addLayer(layer_GoogleHybrid_0);
         function pop_Cobertura4G_1(feature, layer) {
+            var popupContent = '<table>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['value'] !== null ? autolinker.link(String(feature.properties['value']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
+			layer.on('popupopen', function(e) {
+				addClassToPopupIfMedia(content, e.popup);
+			});
+			layer.bindPopup(content, { maxHeight: 400 });
         }
 
         function style_Cobertura4G_1_0() {
@@ -182,6 +190,16 @@
         bounds_group.addLayer(layer_Cobertura4G_1);
         map.addLayer(layer_Cobertura4G_1);
         function pop_Cobertura5G_2(feature, layer) {
+            var popupContent = '<table>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['value'] !== null ? autolinker.link(String(feature.properties['value']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
+			layer.on('popupopen', function(e) {
+				addClassToPopupIfMedia(content, e.popup);
+			});
+			layer.bindPopup(content, { maxHeight: 400 });
         }
 
         function style_Cobertura5G_2_0() {
@@ -210,6 +228,72 @@
         map.addLayer(layer_Cobertura5G_2);
         function pop_LimitesMunicipais_3(feature, layer) {
             var popupContent = '<table>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['fid'] !== null ? autolinker.link(String(feature.properties['fid']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['Código IBGE'] !== null ? autolinker.link(String(feature.properties['Código IBGE']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['UF'] !== null ? autolinker.link(String(feature.properties['UF']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['Município'] !== null ? autolinker.link(String(feature.properties['Município']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['RG Imediata'] !== null ? autolinker.link(String(feature.properties['RG Imediata']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['RG Intermediária'] !== null ? autolinker.link(String(feature.properties['RG Intermediária']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['DDD'] !== null ? autolinker.link(String(feature.properties['DDD']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['CNL'] !== null ? autolinker.link(String(feature.properties['CNL']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['CNL #'] !== null ? autolinker.link(String(feature.properties['CNL #']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['TAC (4G)'] !== null ? autolinker.link(String(feature.properties['TAC (4G)']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['TAC (5G)'] !== null ? autolinker.link(String(feature.properties['TAC (5G)']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['População 2020'] !== null ? autolinker.link(String(feature.properties['População 2020']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['Obrigação ERBs 5G'] !== null ? autolinker.link(String(feature.properties['Obrigação ERBs 5G']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['Vendor'] !== null ? autolinker.link(String(feature.properties['Vendor']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['Rede'] !== null ? autolinker.link(String(feature.properties['Rede']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['FTTH'] !== null ? autolinker.link(String(feature.properties['FTTH']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['Acessos Fixa'] !== null ? autolinker.link(String(feature.properties['Acessos Fixa']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['Share Fixa'] !== null ? autolinker.link(String(feature.properties['Share Fixa']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['IDHM'] !== null ? autolinker.link(String(feature.properties['IDHM']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['PIB_Cap'] !== null ? autolinker.link(String(feature.properties['PIB_Cap']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['Município/UF'] !== null ? autolinker.link(String(feature.properties['Município/UF']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['Área km2'] !== null ? autolinker.link(String(feature.properties['Área km2']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
                 </table>';
             var content = removeEmptyRowsFromPopupContent(popupContent, feature);
 			layer.on('popupopen', function(e) {
@@ -222,7 +306,7 @@
             return {
                 pane: 'pane_LimitesMunicipais_3',
                 opacity: 1,
-                color: 'rgba(255,255,0,1.0)',
+                color: 'rgba(255,237,0,1.0)',
                 dashArray: '',
                 lineCap: 'square',
                 lineJoin: 'bevel',
@@ -250,6 +334,10 @@
                     <tr>\
                         <th scope="row">Site ID</th>\
                         <td>' + (feature.properties['Site ID'] !== null ? autolinker.link(String(feature.properties['Site ID']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Latitude</th>\
+                        <td>' + (feature.properties['Latitude'] !== null ? autolinker.link(String(feature.properties['Latitude']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
                     </tr>\
                 </table>';
             var content = removeEmptyRowsFromPopupContent(popupContent, feature);
@@ -435,16 +523,6 @@
               addLabel(layer, i);
               i++;
         });
-        map.addControl(new L.Control.Search({
-            layer: layer_LimitesMunicipais_3,
-            initial: false,
-            hideMarkerOnCollapse: true,
-            propertyName: 'Cidade'}));
-        if (typeof url === 'undefined') {
-            document.getElementsByClassName('search-button')[0].className += ' fa fa-binoculars';
-        } else {
-            document.getElementsByClassName('search-button')[1].className += ' fa fa-binoculars';
-        }
         resetLabels([layer_SitesPlanejados_4,layer_SitesAtivos_5]);
         map.on("zoomend", function(){
             resetLabels([layer_SitesPlanejados_4,layer_SitesAtivos_5]);
