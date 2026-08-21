@@ -61,7 +61,7 @@
         }
         var map = L.map('map', {
             zoomControl:false, maxZoom:28, minZoom:1
-        }).fitBounds([[-26.883636814402877,-49.40087585719338],[-26.7430264659996,-49.15943417590022]]);
+        }).fitBounds([[-26.88298806861774,-49.389093603516656],[-26.742297408082557,-49.14294442297896]]);
         var hash = new L.Hash(map);
         map.attributionControl.setPrefix('<a href="https://github.com/qgis2web/qgis2web" target="_blank">qgis2web</a> &middot; <a href="https://leafletjs.com" title="A JS library for interactive maps">Leaflet</a> &middot; <a href="https://qgis.org">QGIS</a>');
         var autolinker = new Autolinker({truncate: {length: 30, location: 'smart'}});
@@ -88,9 +88,20 @@
                 var src = imgTd.getAttribute('src');
                 if (/\.(jpg|jpeg|png|gif|bmp|webp|avif)$/i.test(src)) {
                     popup._contentNode.classList.add('media');
-                    setTimeout(function() {
-                        popup.update();
-                    }, 10);
+                    var img = popup._contentNode.querySelector('td img');
+                    if (img) {
+                        // If already loaded (cache), update immediately
+                        if (img.complete && img.naturalHeight > 0) {
+                            popup.update();
+                        } else {
+                            img.addEventListener('load', function() {
+                                popup.update();
+                            });
+                            img.addEventListener('error', function() {
+                                popup.update();
+                            });
+                        }
+                    }
                 } else if (/\.(mp3|wav|ogg|aac)$/i.test(src)) {
                     var audio = document.createElement('audio');
                     audio.controls = true;
@@ -148,7 +159,7 @@
             abstract.show = function () {
                 this._div.classList.remove("abstract");
                 this._div.classList.add("abstractUncollapsed");
-                this._div.innerHTML = 'Mapa de cobertura parcial da rede Unifique para uso INTERNO apenas. Ferramenta auxiliar de decisão para o lançamento comercial das cidades.<br /><br />Sites ativos: <b>630 (+49)</b><br />Última atualização: <b>08/05/2026</b><br />';
+                this._div.innerHTML = 'Mapa de cobertura parcial da rede Unifique para uso INTERNO apenas. Ferramenta auxiliar de decisão para o lançamento comercial das cidades.<br /><br />Sites ativos: <b>764 (+134)</b><br />Última atualização: <b>21/08/2026</b><br />';
         };
         abstract.addTo(map);
         var zoomControl = L.control.zoom({
